@@ -1,18 +1,18 @@
 {
 	"name": "Pocketmark",
 	"version": "0.1",
-	"description": "From pocket to bookmarks.",
-	"permissions": [
-		"bookmarks"
-	],
+	"description": "From pocket to chrome bookmarks",
 	"background": {
 		"scripts": [
+			"async.js",
 			"background.js"
 		]
 	},
 	"permissions": [
 		"https://getpocket.com/v3/get",
-		"http://*/*"
+		"http://*/*",
+		"bookmarks"
 	],
+
 	"manifest_version": 2
 }
