@@ -1,0 +1,18 @@
+{
+	"name": "Pocketmark",
+	"version": "0.1",
+	"description": "From pocket to bookmarks.",
+	"permissions": [
+		"bookmarks"
+	],
+	"background": {
+		"scripts": [
+			"background.js"
+		]
+	},
+	"permissions": [
+		"https://getpocket.com/v3/get",
+		"http://*/*"
+	],
+	"manifest_version": 2
+}
