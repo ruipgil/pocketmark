@@ -10,25 +10,60 @@ var options = {
 };
 
 var POCKET = {
-	requestToken: function(consumer_key, redirect_uri, callback) {
-		var URI = "https://getpocket.com/v3/oauth/request";
-		makeRequest("POST", URI, {
-			"consumer_key": consumer_key,
-			"redirect_uri": redirect_uri
-		}, function(err, data) {
-			// TODO error treatment
-			callback(data.code);
-		});
+	_createParams: function(consumer_key, access_token, obj) {
+		obj = obj || {};
+		obj.consumer_key = consumer_key;
+		obj.access_token = access_token;
+		return obj;
 	},
-	authorize: function(consumer_key, request_token, callback) {
-		var URI = "https://getpocket.com/v3/oauth/authorize";
-		makeRequest("POST", URI, {
-			"consumer_key": consumer_key,
-			"code": request_token
-		}, function(err, data) {
-			// TODO error treatment
-			callback(data.access_token, data.username);
-		});
+	add: function(consumer_key, access_token, params, callback) {
+		// source: http://getpocket.com/developer/docs/v3/add
+		// TODO
+	},
+	modify: function(consumer_key, access_token, params, callback) {
+		// source: http://getpocket.com/developer/docs/v3/modify
+		// TODO
+	},
+	RETRIEVE_URI: "https://getpocket.com/v3/get",
+	retrieve: function(consumer_key, access_token, params, callback) {
+		// source: http://getpocket.com/developer/docs/v3/retrieve
+		makeRequest(
+			"POST",
+			POCKET.RETRIEVE_URI,
+			POCKET._createParams(consumer_key, access_token,params),
+			function(err, data) {
+				callback(err, data.status, data.list); // TODO remove status and send err instead
+			});
+	},
+	auth: {
+		REQUEST_URI: "https://getpocket.com/v3/oauth/request",
+		request: function(consumer_key, redirect_uri, callback) {
+			makeRequest(
+				"POST",
+				POCKET.auth.REQUEST_URI,
+				{
+					"consumer_key": consumer_key,
+					"redirect_uri": redirect_uri
+				},
+				function(err, data) {
+					// TODO error treatment
+					callback(err, data.code);
+				});
+		},
+		AUTHORIZE_URI: "https://getpocket.com/v3/oauth/authorize",
+		authorize: function(consumer_key, request_token, callback) {
+			makeRequest(
+				"POST",
+				POCKET.auth.AUTHORIZE_URI,
+				{
+					"consumer_key": consumer_key,
+					"code": request_token
+				},
+				function(err, data) {
+					// TODO error treatment
+					callback(err, data.access_token, data.username);
+				});
+		}
 	}
 }
 
@@ -38,14 +73,14 @@ function login(callback) {
     var consumerKey = options.consumer_key;
     var authUrl = "https://getpocket.com/v3/oauth/request";
     "redirect_uri=" + redirectUrl;
-	POCKET.requestToken(options.consumer_key, redirectUrl, function(token) {
+	POCKET.auth.request(options.consumer_key, redirectUrl, function(err, token) {
 		var authUrl = "https://getpocket.com/auth/authorize?request_token="+token+"&redirect_uri="+redirectUrl;
 		// TODO error treatment
 		chrome.identity.launchWebAuthFlow({
 			url: authUrl,
 			interactive: true
-		}, function(responseUrl) {
-			POCKET.authorize(options.consumer_key, token, function(access_token, username) {
+		}, function() {
+			POCKET.auth.authorize(options.consumer_key, token, function(err, access_token, username) {
 				console.log(access_token);
 				options.access_token = access_token;
 				callback(access_token, username);
