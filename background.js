@@ -9,13 +9,59 @@ var options = {
 	sort: "oldest" // newest, oldest, title, site
 };
 
+var POCKET = {
+	requestToken: function(consumer_key, redirect_uri, callback) {
+		var URI = "https://getpocket.com/v3/oauth/request";
+		makeRequest("POST", URI, {
+			"consumer_key": consumer_key,
+			"redirect_uri": redirect_uri
+		}, function(err, data) {
+			// TODO error treatment
+			callback(data.code);
+		});
+	},
+	authorize: function(consumer_key, request_token, callback) {
+		var URI = "https://getpocket.com/v3/oauth/authorize";
+		makeRequest("POST", URI, {
+			"consumer_key": consumer_key,
+			"code": request_token
+		}, function(err, data) {
+			// TODO error treatment
+			callback(data.access_token, data.username);
+		});
+	}
+}
+
+function login(callback) {
+
+	var redirectUrl = encodeURIComponent(chrome.identity.getRedirectURL());
+    var consumerKey = options.consumer_key;
+    var authUrl = "https://getpocket.com/v3/oauth/request";
+    "redirect_uri=" + redirectUrl;
+	POCKET.requestToken(options.consumer_key, redirectUrl, function(token) {
+		var authUrl = "https://getpocket.com/auth/authorize?request_token="+token+"&redirect_uri="+redirectUrl;
+		// TODO error treatment
+		chrome.identity.launchWebAuthFlow({
+			url: authUrl,
+			interactive: true
+		}, function(responseUrl) {
+			POCKET.authorize(options.consumer_key, token, function(access_token, username) {
+				console.log(access_token);
+				options.access_token = access_token;
+				callback(access_token, username);
+			});
+		});
+	});
+}
+
 function makeRequest(method, url, data, callback) {
 	var xhr = new XMLHttpRequest();
 
 	console.log(JSON.stringify(data));
 	xhr.open(method?method:"GET", url, true);
 
-	xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+	xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+	xhr.setRequestHeader("X-Accept", "application/json");
 	xhr.send(JSON.stringify(data));
 
 	xhr.onreadystatechange = function() {
@@ -128,6 +174,6 @@ function update() {
 					addBookmark(folder.id, pmark.title, pmark.url, function() { done() });
 				}, function(err) {});
 			});
-		}, "1"); // id:1 is bkmrk bar
+		}, "1"); // id:1 is bkmrk bar TOFIX
 	});
 }

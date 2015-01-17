@@ -11,7 +11,8 @@
 	"permissions": [
 		"https://getpocket.com/v3/get",
 		"http://*/*",
-		"bookmarks"
+		"bookmarks",
+		"identity"
 	],
 
 	"manifest_version": 2
