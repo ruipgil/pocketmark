@@ -9,12 +9,12 @@
 			"background.js"
 		]
 	},
+	"options_page": "settings.html",
 	"permissions": [
 		"https://getpocket.com/v3/get",
 		"http://*/*",
 		"bookmarks",
 		"identity"
 	],
-	"pocket_consumer_key": "",
 	"manifest_version": 2
 }

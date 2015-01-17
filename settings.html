@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Settings - Pocketmark</title>
+	<style>
+		.center, h2 {
+			text-align: center;
+		}
+		.middle {
+			width: 600px;
+			margin: 0 auto;
+		}
+		div.block{
+			margin-top: 10px;
+			overflow:hidden;
+		}
+		div.block label{
+			width:50%;
+			margin-right: 10px;
+			display:block;
+			float:left;
+			text-align:right;
+		}
+		div.block .input{
+			margin-left:4px;
+			float:left;
+		}
+		.hide {
+			display: none;
+		}
+	</style>
+	<script src="settings.js"></script>
+	<script src="pocket.js"></script>
+	<script src="login.js"></script>
+</head>
+<body>
+	<header class="middle center">
+		<h1>Pocketmark</h1>
+	</header>
+
+	<section class="middle">
+
+		<div id="login">
+			<h2>Login</h2>
+			<div class="center">
+				<button id="loginBtn">Login with pocket</button>
+			</div>
+		</div>
+
+		<div id="settings">
+			<h2>Settings</h2>
+			<form>
+				<div class="block">
+					<label for="tagToImport">Tag to import</label>
+					<input type="text" id="tagToImport" required placeholder="Bookmark" autofocus />
+				</div>
+				<div class="block">
+					<label for="state">State</label>
+					<select id="state">
+						<option value="all">All</option>
+						<option value="unread">Unread</option>
+						<option value="archive">Archived</option>
+					</select>
+				</div>
+				<!--
+				<div class="block">
+					<label for="maxPmarks">Max</label>
+					<input type="number" id="maxPmarks" step="1" />
+				</div>
+				-->
+				<div class="block">
+					<label for="destinationFolder">Destination folder name</label>
+					<input type="text" id="destinationFolder"/>
+				</div>
+				<div class="block">
+					<label for="parentFolder"> under </label>
+					<select id="parentFolder">
+						<option>Bookmark bar</option>
+						<option>...</option>
+					</select>
+				</div>
+				<div class="block">
+					<label for="interval">Interval to update</label>
+					<input type="range" min="1" max="60" value="1" step="1" id="interval" />
+				</div>
+				<div class="block" id="intervalDescription"></div>
+				<div class="center">
+					<input type="submit" id="save" value="Save" />
+				</div>
+			</form>
+		</div>
+
+	</section>
+
+	<footer class="middle">
+		Created by Rui Gil.
+		<ul>
+			<li>github.com/ruipgil</li>
+		</ul>
+	</footer>
+
+
+
+</body>
+</html>

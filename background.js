@@ -1,7 +1,7 @@
-var consumer_key = chrome.runtime.getManifest().pocket_consumer_key;
+var intervalID;
 // pocket options
 var pocket_options = {
-	// tag to look for in pocket
+	// tag to look for
 	tag: "bookmark",
 	// states to look for
 	state: POCKET.STATE.ALL,
@@ -15,43 +15,26 @@ var pmarks_options = {
 	// folder to insert the folder
 	parent_folder: "1",
 	// folder name
-	target_folder: "pocketmark"
+	target_folder: "pocketmark",
+	// one minute
+	interval: 1
 }
 
-function setup() {
+function setup(callback) {
 	if( !localStorage.getItem("access_token") ) {
-		login(function(err, access_token, username) {
+		/*login(function(err, access_token, username) {
 			localStorage.setItem("access_token", access_token);
 			localStorage.setItem("username", username);
-		});
+			callback();
+		});*/
+	}else{
+		callback();
 	}
 }
 
-function login(callback) {
-	var redirectUrl = encodeURIComponent(chrome.identity.getRedirectURL());
-	POCKET.auth.request(
-		consumer_key,
-		redirectUrl,
-		function(err, token) {
-			// TODO error treatment
-			chrome.identity.launchWebAuthFlow(
-				{
-					url: POCKET.auth.getAuthorizeURL(token, redirectUrl),
-					interactive: true
-				},
-				function() {
-					POCKET.auth.authorize(
-						consumer_key,
-						token,
-						callback);
-				});
-		});
-}
-
 function transformData(data) {
-	var e = data.list,
+	var e = data,
 		res = [];
-		console.log(e);
 	for(var x in e) {
 		var elm = e[x];
 		res.push({
@@ -69,14 +52,14 @@ function transformData(data) {
 function retrievePocketmarks(callback) {
 	POCKET.retrieve(
 		consumer_key,
-		localStorage.getItem(access_token),
+		localStorage.getItem("access_token"),
 		pocket_options,
-		function(err, data) {
+		function(err, status, list) {
 			if(err) {
 				callback(err);
 				return;
 			}
-			callback(null, transformData(data));
+			callback(null, transformData(list));
 		});
 };
 
@@ -140,9 +123,27 @@ function update() {
 		getBookmarkFolder(pmarks_options.target_folder, function(folder) {
 			clearFolder(folder.id, function() {
 				async.each(pmarks, function(pmark, done) {
-					addBookmark(folder.id, pmark.title, pmark.url, function() { done() });
-				}, function(err) {});
+					addBookmark(folder.id, pmark.title, pmark.url, function() { done(); });
+				}, function(err) {
+					console.log("bip");
+				});
 			});
 		}, pmarks_options.parent_folder);
 	});
 }
+
+function start() {
+	intervalID = setInterval(function() {
+		update();
+	}, pmarks_options.interval * 60000);
+}
+
+function stop() {
+	clearInterval(intervalID);
+}
+
+function run() {
+	setup(start);
+}
+
+run();

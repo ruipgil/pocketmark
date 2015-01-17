@@ -1,3 +1,4 @@
+var consumer_key;
 var POCKET = {
 	_createParams: function(consumer_key, access_token, obj) {
 		obj = obj || {};
@@ -8,7 +9,6 @@ var POCKET = {
 	_request: function(method, url, data, callback) {
 		var xhr = new XMLHttpRequest();
 
-		console.log(JSON.stringify(data));
 		xhr.open(method?method:"GET", url, true);
 
 		xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
@@ -36,11 +36,11 @@ var POCKET = {
 	RETRIEVE_URI: "https://getpocket.com/v3/get",
 	retrieve: function(consumer_key, access_token, params, callback) {
 		// source: http://getpocket.com/developer/docs/v3/retrieve
-		if(params instanceof function) {
+		if(typeof params === "function") {
 			callback = params;
 			params = {};
 		}
-		pocket._request(
+		POCKET._request(
 			"POST",
 			POCKET.RETRIEVE_URI,
 			POCKET._createParams(consumer_key, access_token, params),
@@ -51,7 +51,7 @@ var POCKET = {
 	auth: {
 		REQUEST_URI: "https://getpocket.com/v3/oauth/request",
 		request: function(consumer_key, redirect_uri, callback) {
-			pocket._request(
+			POCKET._request(
 				"POST",
 				POCKET.auth.REQUEST_URI,
 				{
@@ -65,7 +65,7 @@ var POCKET = {
 		},
 		AUTHORIZE_URI: "https://getpocket.com/v3/oauth/authorize",
 		authorize: function(consumer_key, request_token, callback) {
-			pocket._request(
+			POCKET._request(
 				"POST",
 				POCKET.auth.AUTHORIZE_URI,
 				{
@@ -79,7 +79,7 @@ var POCKET = {
 		},
 		G_AUTHORIZE_URI: "https://getpocket.com/auth/authorize",
 		getAuthorizeURL: function(token, redirectUrl) {
-			return G_AUTHORIZE_URI+"?request_token="+token+"&redirect_uri="+redirectUrl;
+			return POCKET.auth.G_AUTHORIZE_URI+"?request_token="+token+"&redirect_uri="+redirectUrl;
 		}
 	},
 	STATE: {
