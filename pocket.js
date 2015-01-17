@@ -81,5 +81,32 @@ var POCKET = {
 		getAuthorizeURL: function(token, redirectUrl) {
 			return G_AUTHORIZE_URI+"?request_token="+token+"&redirect_uri="+redirectUrl;
 		}
+	},
+	STATE: {
+		ALL: "all",
+		UNREAD: "unread",
+		ARCHIVE: "archive"
+	},
+	DETAIL_TYPE: {
+		SIMPLE: "simple",
+		COMPLETE: "complete"
+	},
+	SORT: {
+		NEWEST: "newest",
+		OLDEST: "oldest",
+		TITLE: "title",
+		SITE: "site"
+	},
+	CONTENT_TYPE: {
+		ARTICLE: "article",
+		VIDEO: "video",
+		IMAGE: "image"
+	},
+	TAG: {
+		UNTAGGED: "_untagged_"
+	},
+	FAVOURITE: {
+		YES: 1,
+		NO: 0
 	}
 };
