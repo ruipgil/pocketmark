@@ -1,23 +1,36 @@
-var options = {
+var consumer_key = chrome.runtime.getManifest().pocket_consumer_key;
+// pocket options
+var pocket_options = {
+	// tag to look for in pocket
 	tag: "bookmark",
-	consumer_key: "",
-	access_token: "",
-	state: "all", // unread, archive, all
-	//count: 10,
-	target_folder: "pocketmark",
-	detail_type: "complete",
-	parent_folder: "1", //bookmark bar
-	sort: "oldest" // newest, oldest, title, site
+	// states to look for
+	state: POCKET.STATE.ALL,
+	// number of pocketmarks to get
+	count: undefined,
+	// sorting
+	sort: POCKET.SORT.NEWEST
 };
+// pocketmark's own setup options
+var pmarks_options = {
+	// folder to insert the folder
+	parent_folder: "1",
+	// folder name
+	target_folder: "pocketmark"
+}
+
+function setup() {
+	if( !localStorage.getItem("access_token") ) {
+		login(function(err, access_token, username) {
+			localStorage.setItem("access_token", access_token);
+			localStorage.setItem("username", username);
+		});
+	}
+}
 
 function login(callback) {
-
 	var redirectUrl = encodeURIComponent(chrome.identity.getRedirectURL());
-    var consumerKey = options.consumer_key;
-    var authUrl = "https://getpocket.com/v3/oauth/request";
-    "redirect_uri=" + redirectUrl;
 	POCKET.auth.request(
-		options.consumer_key,
+		consumer_key,
 		redirectUrl,
 		function(err, token) {
 			// TODO error treatment
@@ -28,32 +41,11 @@ function login(callback) {
 				},
 				function() {
 					POCKET.auth.authorize(
-						options.consumer_key,
+						consumer_key,
 						token,
 						callback);
 				});
 		});
-}
-
-function makeRequest(method, url, data, callback) {
-	var xhr = new XMLHttpRequest();
-
-	console.log(JSON.stringify(data));
-	xhr.open(method?method:"GET", url, true);
-
-	xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
-	xhr.setRequestHeader("X-Accept", "application/json");
-	xhr.send(JSON.stringify(data));
-
-	xhr.onreadystatechange = function() {
-		if( xhr.readyState === xhr.DONE ) {
-			try {
-				callback(null, JSON.parse(xhr.responseText));
-			} catch (e) {
-				callback(e, null);
-			}
-		}
-	}
 }
 
 function transformData(data) {
@@ -76,14 +68,9 @@ function transformData(data) {
 
 function retrievePocketmarks(callback) {
 	POCKET.retrieve(
-		options.consumer_key,
-		options.access_token,
-		{
-			tag: options.tag,
-			count: options.count,
-			state: options.state,
-			detail_type: "simple"
-		},
+		consumer_key,
+		localStorage.getItem(access_token),
+		pocket_options,
 		function(err, data) {
 			if(err) {
 				callback(err);
@@ -150,12 +137,12 @@ function addBookmark(parentId, title, url, callback) {
 
 function update() {
 	retrievePocketmarks(function(err, pmarks) {
-		getBookmarkFolder(options.target_folder, function(folder) {
+		getBookmarkFolder(pmarks_options.target_folder, function(folder) {
 			clearFolder(folder.id, function() {
 				async.each(pmarks, function(pmark, done) {
 					addBookmark(folder.id, pmark.title, pmark.url, function() { done() });
 				}, function(err) {});
 			});
-		}, options.parent_folder);
+		}, pmarks_options.parent_folder);
 	});
 }
