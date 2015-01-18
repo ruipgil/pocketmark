@@ -1,4 +1,4 @@
-var consumer_key;
+var consumer_key = "";
 var POCKET = {
 	_createParams: function(consumer_key, access_token, obj) {
 		obj = obj || {};

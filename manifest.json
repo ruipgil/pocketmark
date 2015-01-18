@@ -4,13 +4,13 @@
 	"description": "From pocket to chrome bookmarks",
 	"background": {
 		"scripts": [
-			"async.js",
-			"pocket.js",
-			"storage.js",
-			"background.js"
+			"./libs/async.js",
+			"./src/pocket.js",
+			"./src/storage.js",
+			"./src/background.js"
 		]
 	},
-	"options_page": "settings.html",
+	"options_page": "./src/settings.html",
 	"permissions": [
 		"https://getpocket.com/v3/get",
 		"bookmarks",
