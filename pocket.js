@@ -17,11 +17,13 @@ var POCKET = {
 
 		xhr.onreadystatechange = function() {
 			if( xhr.readyState === xhr.DONE ) {
+				var response, err;
 				try {
-					callback(null, JSON.parse(xhr.responseText));
+					response = JSON.parse(xhr.responseText);
 				} catch (e) {
-					callback(e, null);
+					err = e;
 				}
+				callback(err, response);
 			}
 		}
 	},
@@ -45,7 +47,11 @@ var POCKET = {
 			POCKET.RETRIEVE_URI,
 			POCKET._createParams(consumer_key, access_token, params),
 			function(err, data) {
-				callback(err, data.status, data.list); // TODO remove status and send err instead
+				if(err) {
+					callback(err);
+				} else {
+					callback(null, data.status, data.list);
+				}
 			});
 	},
 	auth: {
@@ -59,8 +65,11 @@ var POCKET = {
 					"redirect_uri": redirect_uri
 				},
 				function(err, data) {
-					// TODO error treatment
-					callback(err, data.code);
+					if(err) {
+						callback(err);
+					} else {
+						callback(null, data.code);
+					}
 				});
 		},
 		AUTHORIZE_URI: "https://getpocket.com/v3/oauth/authorize",
@@ -72,9 +81,12 @@ var POCKET = {
 					"consumer_key": consumer_key,
 					"code": request_token
 				},
-				function(err, data) {
-					// TODO error treatment
-					callback(err, data.access_token, data.username);
+				function(err, data, url) {
+					if(err) {
+						callback(err);
+					}else{
+						callback(null, data.access_token, data.username);
+					}
 				});
 		},
 		G_AUTHORIZE_URI: "https://getpocket.com/auth/authorize",
