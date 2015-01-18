@@ -28,9 +28,19 @@
 		.hide {
 			display: none;
 		}
+		ul {
+			display: inline;
+		}
+		li {
+			display: inline;
+		}
+		footer {
+			margin-top: 20px;
+		}
 	</style>
 	<script src="settings.js"></script>
 	<script src="pocket.js"></script>
+	<script src="storage.js"></script>
 	<script src="login.js"></script>
 </head>
 <body>
@@ -49,6 +59,9 @@
 
 		<div id="settings">
 			<h2>Settings</h2>
+			<div class="center">
+				<span id="loggedAs"></span>, <a href="#" id="logout">Logout</a>
+			</div>
 			<form>
 				<div class="block">
 					<label for="tagToImport">Tag to import</label>
@@ -72,6 +85,7 @@
 					<label for="destinationFolder">Destination folder name</label>
 					<input type="text" id="destinationFolder"/>
 				</div>
+				<!--
 				<div class="block">
 					<label for="parentFolder"> under </label>
 					<select id="parentFolder">
@@ -83,6 +97,7 @@
 					<label for="interval">Interval to update</label>
 					<input type="range" min="1" max="60" value="1" step="1" id="interval" />
 				</div>
+				-->
 				<div class="block" id="intervalDescription"></div>
 				<div class="center">
 					<input type="submit" id="save" value="Save" />
@@ -92,11 +107,11 @@
 
 	</section>
 
-	<footer class="middle">
-		Created by Rui Gil.
-		<ul>
-			<li>github.com/ruipgil</li>
-		</ul>
+	<footer class="center">
+		<p>Pocketmark is <a href="https://github.com/ruipgil/pocketmark">open sourced</a>, under the MIT license.</p>
+		<p>
+				Created by Rui Gil &bull; <a href="https://github.com/ruipgil">github.com/ruipgil</a>
+		</p>
 	</footer>
 
 

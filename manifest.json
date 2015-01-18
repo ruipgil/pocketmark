@@ -6,13 +6,13 @@
 		"scripts": [
 			"async.js",
 			"pocket.js",
+			"storage.js",
 			"background.js"
 		]
 	},
 	"options_page": "settings.html",
 	"permissions": [
 		"https://getpocket.com/v3/get",
-		"http://*/*",
 		"bookmarks",
 		"identity"
 	],
