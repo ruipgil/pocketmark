@@ -1,34 +1,23 @@
-var intervalID;
-// pocket options
-var pocket_options = {
-	// tag to look for
-	tag: "bookmark",
-	// states to look for
-	state: POCKET.STATE.ALL,
-	// number of pocketmarks to get
-	count: undefined,
-	// sorting
-	sort: POCKET.SORT.NEWEST
-};
-// pocketmark's own setup options
-var pmarks_options = {
-	// folder to insert the folder
-	parent_folder: "1",
-	// folder name
-	target_folder: "pocketmark",
-	// one minute
-	interval: 1
-}
+var intervalID = null;
+var lastUpdate = 0;
+var pocket_options = null;
+var pmarks_options = null;
 
-function setup(callback) {
-	if( !localStorage.getItem("access_token") ) {
-		/*login(function(err, access_token, username) {
-			localStorage.setItem("access_token", access_token);
-			localStorage.setItem("username", username);
-			callback();
-		});*/
-	}else{
-		callback();
+function buildObjects() {
+	var t = storage.get("lastChange");
+	if(!pocket_options || !pmarks_options || lastUpdate < t) {
+		pocket_options = {
+			tag: storage.get("tag"),
+			state: storage.get("state"),
+			//count: storage.get("count"),
+			sort: POCKET.SORT.NEWEST//storage.get("sort")
+		};
+		pmarks_options = {
+			parent_folder: storage.get("parent_folder"),
+			target_folder: storage.get("target_folder"),
+			interval: Number(storage.get("interval"))
+		}
+		lastUpdate = t;
 	}
 }
 
@@ -52,7 +41,7 @@ function transformData(data) {
 function retrievePocketmarks(callback) {
 	POCKET.retrieve(
 		consumer_key,
-		localStorage.getItem("access_token"),
+		storage.get("access_token"),
 		pocket_options,
 		function(err, status, list) {
 			if(err) {
@@ -125,7 +114,7 @@ function update() {
 				async.each(pmarks, function(pmark, done) {
 					addBookmark(folder.id, pmark.title, pmark.url, function() { done(); });
 				}, function(err) {
-					console.log("bip");
+					// TODO error handling
 				});
 			});
 		}, pmarks_options.parent_folder);
@@ -133,6 +122,8 @@ function update() {
 }
 
 function start() {
+	buildObjects();
+	update();
 	intervalID = setInterval(function() {
 		update();
 	}, pmarks_options.interval * 60000);
@@ -140,10 +131,24 @@ function start() {
 
 function stop() {
 	clearInterval(intervalID);
+	intervalID = null;
 }
 
 function run() {
-	setup(start);
+	if( storage.get("access_token") || intervalID !== null ) {
+		start();
+	}
 }
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+	if(request.start) {
+		run();
+	} else if(request.stop) {
+		stop();
+	} else if(request.restart) {
+		stop();
+		run();
+	}
+});
 
 run();

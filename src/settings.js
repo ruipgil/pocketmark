@@ -1,34 +1,3 @@
-var pocket_options = {
-	// tag to look for
-	tag: "bookmark",
-	// states to look for
-	state: "all",
-	// number of pocketmarks to get
-	count: undefined,
-	// sorting
-	sort: "newest"
-};
-// pocketmark's own setup options
-var pmarks_options = {
-	// folder to insert the folder
-	parent_folder: "1",
-	// folder name
-	target_folder: "pocketmark",
-	// one minute
-	interval: 1
-}
-var pocket_options_map = {
-		tag: "tagToImport",
-		state: "state",
-		count: "maxPmarks",
-	},
-	pmarks_options_map = {
-		//parent_folder: "parentFolder",
-		target_folder: "destinationFolder",
-		interval: "interval"
-	};
-
-
 function setLoginState() {
 	document.querySelector("#login").classList.remove("hide");
 	document.querySelector("#settings").classList.add("hide");
@@ -50,6 +19,17 @@ function loadSettingsValues() {
 	document.querySelector("#destinationFolder").value = storage.get("target_folder");
 	//document.querySelector("#interval").value = storage.get("interval");
 }
+var background = {
+	start: function() {
+		chrome.runtime.sendMessage({start:true});
+	},
+	stop: function() {
+		chrome.runtime.sendMessage({stop:true});
+	},
+	restart: function() {
+		chrome.runtime.sendMessage({restart:true});
+	}
+};
 
 var validators = {
 	isAlphaNum: function(val) {
@@ -69,7 +49,9 @@ var validators = {
 	isInt: function(val) {
 		return /^[0-9]+/g.test(val);
 	},
-	isFolder: function(val) {}
+	isFolder: function(val) {
+		return true;
+	}
 };
 
 var validate = function(params, callback) {
@@ -91,13 +73,13 @@ var validate = function(params, callback) {
 		return true;
 	}
 
-	if( vys(validators.isAlphaNum, params.tag) &&
-		vys(validators.isState, params.state) &&
-		vys(validators.isSort, params.sort) &&
-		vys(validators.isInt, params.max) &&
-		vys(validators.isInt, params.interval) &&
-		vys([validators.isFolder, validators.isAlphaNum], params.parent_folder) &&
-		vys(validators.isAlphaNum, params.target_folder) ) {
+	if( vys(validators.isAlphaNum, params.tag, "Invalid tag. Use an alphanumeric tag.") &&
+		vys(validators.isState, params.state, "Uhg, somethings wrong, and it may not be your fault. Please report an issue.") &&
+		//vys(validators.isSort, params.sort) &&
+		//vys(validators.isInt, params.max) &&
+		//vys(validators.isInt, params.interval) &&
+		//vys([validators.isFolder, validators.isAlphaNum], params.parent_folder) &&
+		vys(validators.isAlphaNum, params.target_folder, "Invalid folder name. Use an alphanumeric name.") ) {
 			storage.set({
 				tag: params.tag,
 				state: params.state,
@@ -114,11 +96,11 @@ var validate = function(params, callback) {
 function onLoad() {
 	// bind click and changes
 	document.querySelector("#loginBtn").addEventListener('click', function() {
-		console.log("a");
 		login(function(err) {
 			if(err) {
 				setErrorMessage("Login failed. Try again.");
 			} else {
+				background.start();
 				loadSettingsValues();
 				setSettingsState();
 			}
@@ -128,6 +110,7 @@ function onLoad() {
 	document.querySelector("#logout").addEventListener('click', function() {
 		logout(function() {
 			setLoginState();
+			background.stop();
 		});
 	});
 	document.querySelector("#save").addEventListener('click', function() {
@@ -136,14 +119,17 @@ function onLoad() {
 		};
 
 		validate({
-			"tag": value("#tagToImport"),
-			"state": value("#state"),
-			//"sort": value("#sort"),
-			//"max": value("#maxPmarks"),
-			//"parent_folder": value("#parentFolder"),
-			"target_folder": value("#targetFolder"),
-			//"interval": value("#interval")
-		}, loadSettingsValues);
+			"tag": document.querySelector("#tagToImport").value,
+			"state": document.querySelector("#state").value,
+			//"sort": document.querySelector("#sort").value,
+			//"max": document.querySelector("#maxPmarks").value,
+			//"parent_folder": document.querySelector("#parentFolder").value,
+			"target_folder": document.querySelector("#destinationFolder").value,
+			//"interval": document.querySelector("#interval").value
+		}, function() {
+			loadSettingsValues();
+			background.restart();
+		});
 	});
 
 	/*document.querySelector("#interval").addEventListener('change', function() {
