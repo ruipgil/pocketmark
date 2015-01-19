@@ -1,7 +1,9 @@
-var intervalID = null;
-var lastUpdate = 0;
-var pocket_options = null;
-var pmarks_options = null;
+var running = null,
+	ALARM_NAME = "updateLoop",
+	lastUpdate = 0,
+	pocket_options = null,
+	pmarks_options = null,
+	ONE_MINUTE = 60000;
 
 function buildObjects() {
 	var t = storage.get("lastChange");
@@ -113,9 +115,7 @@ function update() {
 			clearFolder(folder.id, function() {
 				async.each(pmarks, function(pmark, done) {
 					addBookmark(folder.id, pmark.title, pmark.url, function() { done(); });
-				}, function(err) {
-					// TODO error handling
-				});
+				}, function(err) {});
 			});
 		}, pmarks_options.parent_folder);
 	});
@@ -124,14 +124,15 @@ function update() {
 function start() {
 	buildObjects();
 	update();
-	intervalID = setInterval(function() {
-		update();
-	}, pmarks_options.interval * 60000);
+	chrome.alarms.create(ALARM_NAME, {
+		periodInMinutes: pmarks_options.interval
+	});
+	running = true;
 }
 
-function stop() {
-	clearInterval(intervalID);
-	intervalID = null;
+function stop(callback) {
+	running = false;
+	chrome.alarms.clear(ALARM_NAME, callback);
 }
 
 function run() {
@@ -140,14 +141,19 @@ function run() {
 	}
 }
 
+chrome.alarms.onAlarm.addListener(function(alarm) {
+	if(alarm.name === ALARM_NAME && running) {
+		update();
+	}
+});
+
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	if(request.start) {
 		run();
 	} else if(request.stop) {
 		stop();
 	} else if(request.restart) {
-		stop();
-		run();
+		stop(run);
 	}
 });
 
