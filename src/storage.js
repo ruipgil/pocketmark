@@ -28,6 +28,7 @@ var storage = {
 			parent_folder: "1",
 			target_folder: "pocketmark",
 			interval: 1,
+			pocket_on_save: 0,
 			lastChange: Date.now()
 		});
 	},

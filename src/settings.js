@@ -17,6 +17,7 @@ function loadSettingsValues() {
 	//update("#sort", storage.get("sort"));
 	//document.querySelector("#parentFolder").value = storage.get("parent_folder");
 	document.querySelector("#destinationFolder").value = storage.get("target_folder");
+	document.querySelector("#pocketOnSave").checked = !!Number(storage.get("pocket_on_save"));
 	//document.querySelector("#interval").value = storage.get("interval");
 }
 var background = {
@@ -80,13 +81,15 @@ var validate = function(params, callback) {
 		//vys(validators.isInt, params.interval) &&
 		//vys([validators.isFolder, validators.isAlphaNum], params.parent_folder) &&
 		vys(validators.isAlphaNum, params.target_folder, "Invalid folder name. Use an alphanumeric name.") ) {
+			console.log(params.pocket_on_save);
 			storage.set({
 				tag: params.tag,
 				state: params.state,
 				sort:params.sort,
 				max: params.max,
 				parent_folder: params.parent_folder,
-				target_folder: params.target_folder
+				target_folder: params.target_folder,
+				pocket_on_save: params.pocket_on_save
 			});
 			callback();
 	}
@@ -114,10 +117,6 @@ function onLoad() {
 		});
 	});
 	document.querySelector("#save").addEventListener('click', function() {
-		var value = function(sel) {
-			return document.querySelector(sel).value;
-		};
-
 		validate({
 			"tag": document.querySelector("#tagToImport").value,
 			"state": document.querySelector("#state").value,
@@ -125,6 +124,7 @@ function onLoad() {
 			//"max": document.querySelector("#maxPmarks").value,
 			//"parent_folder": document.querySelector("#parentFolder").value,
 			"target_folder": document.querySelector("#destinationFolder").value,
+			"pocket_on_save": document.querySelector("#pocketOnSave").checked?"1":"0",
 			//"interval": document.querySelector("#interval").value
 		}, function() {
 			loadSettingsValues();

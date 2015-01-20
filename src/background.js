@@ -17,6 +17,7 @@ function buildObjects() {
 		pmarks_options = {
 			parent_folder: storage.get("parent_folder"),
 			target_folder: storage.get("target_folder"),
+			pocket_on_save: Number(storage.get("pocket_on_save")),
 			interval: Number(storage.get("interval"))
 		}
 		lastUpdate = t;
@@ -154,6 +155,19 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 		stop();
 	} else if(request.restart) {
 		stop(run);
+	}
+});
+
+chrome.bookmarks.onCreated.addListener(function(id, bookmark) {
+	if(pmarks_options.pocket_on_save && bookmark.url) {
+		POCKET.retrieve(
+			consumer_key,
+			storage.get("access_token"),
+			{
+				url: bookmark.url,
+				tags: pocket_options.tag
+			},
+			function(err) {});
 	}
 });
 
