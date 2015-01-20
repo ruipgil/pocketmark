@@ -160,7 +160,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
 chrome.bookmarks.onCreated.addListener(function(id, bookmark) {
 	if(pmarks_options.pocket_on_save && bookmark.url) {
-		POCKET.retrieve(
+		POCKET.add(
 			consumer_key,
 			storage.get("access_token"),
 			{

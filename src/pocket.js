@@ -27,9 +27,20 @@ var POCKET = {
 			}
 		}
 	},
+	ADD_URI: "https://getpocket.com/v3/add",
 	add: function(consumer_key, access_token, params, callback) {
 		// source: http://getpocket.com/developer/docs/v3/add
-		// TODO
+		POCKET._request(
+			"POST",
+			POCKET.ADD_URI,
+			POCKET._createParams(consumer_key, access_token, params),
+			function(err, data) {
+				if(err) {
+					callback(err);
+				} else {
+					callback(null, data.status, data.item);
+				}
+			});
 	},
 	modify: function(consumer_key, access_token, params, callback) {
 		// source: http://getpocket.com/developer/docs/v3/modify
