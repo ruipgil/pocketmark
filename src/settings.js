@@ -10,24 +10,29 @@ function setErrorMessage(message) {
 	alert(message);
 }
 function loadSettingsValues() {
-	document.querySelector("#loggedAs").innerText = storage.get("username");
-	document.querySelector("#tagToImport").value = storage.get("tag");
-	document.querySelector("#state").value = storage.get("state");
-	//update("#maxPmarks", storage.get("count"));
-	//update("#sort", storage.get("sort"));
-	//document.querySelector("#parentFolder").value = storage.get("parent_folder");
-	document.querySelector("#destinationFolder").value = storage.get("target_folder");
-	document.querySelector("#pocketOnSave").checked = !!Number(storage.get("pocket_on_save"));
-	//document.querySelector("#interval").value = storage.get("interval");
+	storage.getAll(function(s) {
+		document.querySelector("#loggedAs").innerText = s.username;
+		document.querySelector("#tagToImport").value = s.tag;
+		document.querySelector("#state").value = s.state;
+		//update("#maxPmarks", s.count);
+		//update("#sort", s.sort);
+		//document.querySelector("#parentFolder").value = s.parent_folder;
+		document.querySelector("#destinationFolder").value = s.target_folder;
+		document.querySelector("#pocketOnSave").checked = !!Number(s.pocket_on_save);
+		//document.querySelector("#interval").value = s.interval;
+	});
 }
 var background = {
 	start: function() {
+		console.log("start");
 		chrome.runtime.sendMessage({start:true});
 	},
 	stop: function() {
+		console.log("stop");
 		chrome.runtime.sendMessage({stop:true});
 	},
 	restart: function() {
+		console.log("restart");
 		chrome.runtime.sendMessage({restart:true});
 	}
 };
@@ -37,15 +42,15 @@ var validators = {
 		return /^[a-zA-Z0-9_]+$/g.test(val);
 	},
 	isState: function(val) {
-		return val === POCKET.STATE.ALL || 
-			val === POCKET.STATE.UNREAD || 
-			val === POCKET.STATE.ARCHIVE;
+		return val === Pocket.STATE.ALL || 
+			val === Pocket.STATE.UNREAD || 
+			val === Pocket.STATE.ARCHIVE;
 	},
 	isSort: function(val) {
-		return val === POCKET.SORT.NEWEST ||
-			val === POCKET.SORT.OLDEST ||
-			val === POCKET.SORT.TITLE ||
-			val === POCKET.SORT.SITE;
+		return val === Pocket.SORT.NEWEST ||
+			val === Pocket.SORT.OLDEST ||
+			val === Pocket.SORT.TITLE ||
+			val === Pocket.SORT.SITE;
 	},
 	isInt: function(val) {
 		return /^[0-9]+/g.test(val);
@@ -81,7 +86,6 @@ var validate = function(params, callback) {
 		//vys(validators.isInt, params.interval) &&
 		//vys([validators.isFolder, validators.isAlphaNum], params.parent_folder) &&
 		vys(validators.isAlphaNum, params.target_folder, "Invalid folder name. Use an alphanumeric name.") ) {
-			console.log(params.pocket_on_save);
 			storage.set({
 				tag: params.tag,
 				state: params.state,
@@ -90,8 +94,7 @@ var validate = function(params, callback) {
 				parent_folder: params.parent_folder,
 				target_folder: params.target_folder,
 				pocket_on_save: params.pocket_on_save
-			});
-			callback();
+			}, callback);
 	}
 
 }
@@ -136,12 +139,14 @@ function onLoad() {
 		document.querySelector("#intervalDescription").innerText = document.querySelector("#interval").value;
 	});*/
 
-	if(localStorage.getItem("access_token")) {
-		setSettingsState();
-		loadSettingsValues();
-	}else{
-		setLoginState();
-	}
+	storage.get("access_token", function(value) {
+		if(value) {
+			setSettingsState();
+			loadSettingsValues();
+		}else{
+			setLoginState();
+		}
+	});
 }
 
 document.addEventListener('DOMContentLoaded', onLoad);

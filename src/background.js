@@ -1,30 +1,23 @@
-var running = false,
-	ALARM_NAME = "updateLoop",
-	lastUpdate = 0,
+var ALARM_NAME = "updateLoop",
 	pocket_options = null,
 	pmarks_options = null,
-	ONE_MINUTE = 60000;
+	p = null;
 
 /**
  * Build the options objects.
  */
-function buildObjects() {
-	var t = storage.get("lastChange");
-	if(!pocket_options || !pmarks_options || lastUpdate < t) {
-		pocket_options = {
-			tag: storage.get("tag"),
-			state: storage.get("state"),
-			//count: storage.get("count"),
-			sort: POCKET.SORT.NEWEST//storage.get("sort")
-		};
-		pmarks_options = {
-			parent_folder: storage.get("parent_folder"),
-			target_folder: storage.get("target_folder"),
-			pocket_on_save: Number(storage.get("pocket_on_save")),
-			interval: Number(storage.get("interval"))
-		}
-		lastUpdate = t;
-	}
+function buildObjects(data) {
+	pocket_options = {
+		tag: data.tag,
+		state: data.state,
+		sort: Pocket.SORT.NEWEST
+	};
+	pmarks_options = {
+		parent_folder: data.parent_folder,
+		target_folder: data.target_folder,
+		pocket_on_save: Number(data.pocket_on_save),
+		interval: Number(data.interval)
+	};
 }
 
 /**
@@ -62,17 +55,13 @@ function transformData(data) {
  *   parameter is a list of pocket items simplified.
  */
 function retrievePocketmarks(callback) {
-	POCKET.retrieve(
-		consumer_key,
-		storage.get("access_token"),
-		pocket_options,
-		function(err, status, list) {
-			if(err) {
-				callback(err);
-				return;
-			}
-			callback(null, transformData(list));
-		});
+	p.retrieve(pocket_options, function(err, status, list) {
+		if(err) {
+			callback(err);
+			return;
+		}
+		callback(null, transformData(list));
+	});
 };
 
 /**
@@ -168,23 +157,11 @@ function update() {
 			clearFolder(folder.id, function() {
 				async.each(pmarks, function(pmark, done) {
 					addBookmark(folder.id, pmark.title, pmark.url, function() { done(); });
-				}, function(err) {});
+				}, function(err) {
+				});
 			});
 		}, pmarks_options.parent_folder);
 	});
-}
-
-/**
- * Starts pocketmark. It builds the objects, updates one time and sets
- *   the alarm to trigger the next update.
- */
-function start() {
-	buildObjects();
-	update();
-	chrome.alarms.create(ALARM_NAME, {
-		periodInMinutes: pmarks_options.interval
-	});
-	running = true;
 }
 
 /**
@@ -193,7 +170,7 @@ function start() {
  * @param  {!function} callback Callback function.
  */
 function stop(callback) {
-	running = false;
+	p = null;
 	chrome.alarms.clear(ALARM_NAME, callback);
 }
 
@@ -201,10 +178,17 @@ function stop(callback) {
  * Starts pocketmark if there is an access token, ie, the user is
  *   logged in.
  */
-function run() {
-	if( storage.get("access_token") ) {
-		start();
-	}
+function start() {
+	storage.getAll(function(data) {
+		if(data.access_token && data.username) {
+			p = new Pocket(consumer_key, data.access_token);
+			buildObjects(data);
+			update();
+			chrome.alarms.create(ALARM_NAME, {
+				periodInMinutes: pmarks_options.interval
+			});
+		}
+	});
 }
 
 /**
@@ -212,7 +196,7 @@ function run() {
  *   one and when it was started and not stopped.
  */
 chrome.alarms.onAlarm.addListener(function(alarm) {
-	if(alarm.name === ALARM_NAME && running) {
+	if(alarm.name === ALARM_NAME && p) {
 		update();
 	}
 });
@@ -228,11 +212,11 @@ chrome.alarms.onAlarm.addListener(function(alarm) {
  */
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	if(request.start) {
-		run();
+		start();
 	} else if(request.stop) {
 		stop();
 	} else if(request.restart) {
-		stop(run);
+		stop(start);
 	}
 });
 
@@ -241,16 +225,12 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
  * This feature must be activated in the settings page.
  */
 chrome.bookmarks.onCreated.addListener(function(id, bookmark) {
-	if(pmarks_options.pocket_on_save && bookmark.url) {
-		POCKET.add(
-			consumer_key,
-			storage.get("access_token"),
-			{
-				url: bookmark.url,
-				tags: pocket_options.tag
-			},
-			function(err) {});
+	if(p && pmarks_options.pocket_on_save && bookmark.url) {
+		p.add({
+			url: bookmark.url,
+			tags: pocket_options.tag
+		}, function(err) {});
 	}
 });
 
-run();
+start();

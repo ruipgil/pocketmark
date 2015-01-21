@@ -1,7 +1,7 @@
 function login(callback) {
 	var redirectUrl = encodeURIComponent(chrome.identity.getRedirectURL()+"settings.html");
 	callback = callback || function() {};
-	POCKET.auth.request(
+	Pocket.auth.request(
 		consumer_key,
 		redirectUrl,
 		function(err, token) {
@@ -11,11 +11,11 @@ function login(callback) {
 			}
 			chrome.identity.launchWebAuthFlow(
 				{
-					url: POCKET.auth.getAuthorizeURL(token, redirectUrl),
+					url: Pocket.auth.getAuthorizeURL(token, redirectUrl),
 					interactive: true
 				},
 				function() {
-					POCKET.auth.authorize(
+					Pocket.auth.authorize(
 						consumer_key,
 						token,
 						function(err, access_token, username) {
@@ -32,6 +32,5 @@ function login(callback) {
 
 function logout(callback) {
 	callback = callback || function() {};
-	storage.clear();
-	callback();
+	storage.clear(callback);
 }
