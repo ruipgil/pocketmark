@@ -1,10 +1,13 @@
-var running = null,
+var running = false,
 	ALARM_NAME = "updateLoop",
 	lastUpdate = 0,
 	pocket_options = null,
 	pmarks_options = null,
 	ONE_MINUTE = 60000;
 
+/**
+ * Build the options objects.
+ */
 function buildObjects() {
 	var t = storage.get("lastChange");
 	if(!pocket_options || !pmarks_options || lastUpdate < t) {
@@ -24,6 +27,14 @@ function buildObjects() {
 	}
 }
 
+/**
+ * Transforms the list received from pocket, into an internal format.
+ *
+ * @param  {!Object.<!string, !Object>} data Object received from
+ *   pocket, ie, <code>list</code>
+ * @return {!Array.<!Object>} Array of objects, ordered. The object
+ *   has the keys <ul><li>order</li><li>url</li><li>title</li></ul>
+ */
 function transformData(data) {
 	var e = data,
 		res = [];
@@ -41,6 +52,15 @@ function transformData(data) {
 	});
 }
 
+/**
+ * Retrieves pocket items according to the options.
+ *
+ * @param  {!function(?Error, ?Array.<!Object>)} callback Callback
+ *   function should have two arguments. When an error occurred the
+ *   first argument is defined and the second, the result, is
+ *   undefined. Otherwise the first parameter is null and the second
+ *   parameter is a list of pocket items simplified.
+ */
 function retrievePocketmarks(callback) {
 	POCKET.retrieve(
 		consumer_key,
@@ -62,7 +82,7 @@ function retrievePocketmarks(callback) {
  * is created.
  *
  * @param  {!string} folderName
- * @param  {!function(string|null)} callback
+ * @param  {!function(?string)} callback
  * @param  {!string} parentId
  */
 function getBookmarkFolder(folderName, callback, parentId) {
@@ -84,12 +104,26 @@ function getBookmarkFolder(folderName, callback, parentId) {
 	});
 }
 
+/**
+ * Removes the a bookmark from chrome's bookmarks.
+ *
+ * @param  {!string} bookmarkId Bookmark id, given by chrome.
+ * @param  {?function} callback Callback function. Doesn't receive
+ *   nothing.
+ */
 function removeBookmark(bookmarkId, callback) {
 	chrome.bookmarks.remove(bookmarkId, callback?function() {
 			callback();
 		}:function(){});
 }
 
+/**
+ * Removes all bookmarks from a folder.
+ *
+ * @param  {!string} folderId Folder id, as provided by chrome.
+ * @param  {!function} callback Callback function, doesn't receive
+ *   nothing.
+ */
 function clearFolder(folderId, callback) {
 	chrome.bookmarks.getChildren(folderId, function(children) {
 		async.each(children, function(child, done) {
@@ -100,16 +134,34 @@ function clearFolder(folderId, callback) {
 	});
 }
 
+/**
+ * Adds a bookmark to a folder.
+ *
+ * @param {!string} parentId Folder id to insert the bookmark, as
+ *   provided by chrome.
+ * @param {!string} title Title of the bookmark. May be empty
+ * @param {!string} url Url of the bookmark. Should not be empty, if
+ *   so a folder is created instead of a bookmark.
+ * @param {?function(Bookmark)} callback Callback function, that
+ *   receives a bookmark as the first argument.
+ */
 function addBookmark(parentId, title, url, callback) {
 	chrome.bookmarks.create({
 		parentId: parentId,
-		title: title,
+		title: title || "",
 		url: url
 	}, callback ? function(bookmark) {
 			callback(bookmark);
 		} : function() {});
 }
 
+/**
+ * Updates the folder with bookmarks representing pocket items.
+ * This is a simple get, clear, update cycle.
+ * First the pocket items are retrieved, then the folder is cleared
+ *   and new bookmarks are inserted.
+ * This method can and should be optimized.
+ */
 function update() {
 	retrievePocketmarks(function(err, pmarks) {
 		getBookmarkFolder(pmarks_options.target_folder, function(folder) {
@@ -122,6 +174,10 @@ function update() {
 	});
 }
 
+/**
+ * Starts pocketmark. It builds the objects, updates one time and sets
+ *   the alarm to trigger the next update.
+ */
 function start() {
 	buildObjects();
 	update();
@@ -131,23 +187,45 @@ function start() {
 	running = true;
 }
 
+/**
+ * Stops the update cycle, by clearing the alarm.
+ *
+ * @param  {!function} callback Callback function.
+ */
 function stop(callback) {
 	running = false;
 	chrome.alarms.clear(ALARM_NAME, callback);
 }
 
+/**
+ * Starts pocketmark if there is an access token, ie, the user is
+ *   logged in.
+ */
 function run() {
-	if( storage.get("access_token") || intervalID !== null ) {
+	if( storage.get("access_token") ) {
 		start();
 	}
 }
 
+/**
+ * Adds the alarm listener. Only updates when the alarm is the update
+ *   one and when it was started and not stopped.
+ */
 chrome.alarms.onAlarm.addListener(function(alarm) {
 	if(alarm.name === ALARM_NAME && running) {
 		update();
 	}
 });
 
+/**
+ * Message listener to execute commands sent by the settings page.
+ * This treats three kinds of messages:<ul>
+ *   <li>start, to start pocketmark. This message is to be sent when
+ *     the user just logged in.</li>
+ *   <li>stop, to stop pocketmark. This message is to be sent when the
+ *     user has logged out.</li>
+ *   <li>restart, to stop and then start pocketmark.</li></ul>
+ */
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	if(request.start) {
 		run();
@@ -158,6 +236,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	}
 });
 
+/**
+ * Adds a listener to add a item to pocket, when it was bookmarked.
+ * This feature must be activated in the settings page.
+ */
 chrome.bookmarks.onCreated.addListener(function(id, bookmark) {
 	if(pmarks_options.pocket_on_save && bookmark.url) {
 		POCKET.add(
