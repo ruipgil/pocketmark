@@ -1,6 +1,6 @@
 {
 	"name": "Pocketmark",
-	"version": "0.2",
+	"version": "0.2.1",
 	"description": "From pocket to chrome bookmarks",
 	"background": {
 		"scripts": [
