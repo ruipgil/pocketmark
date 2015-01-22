@@ -1,6 +1,6 @@
 {
 	"name": "Pocketmark",
-	"version": "0.2.1",
+	"version": "0.3",
 	"description": "From pocket to chrome bookmarks",
 	"background": {
 		"scripts": [
@@ -15,6 +15,7 @@
 	"permissions": [
 		"https://getpocket.com/v3/get",
 		"bookmarks",
+		"storage",
 		"alarms",
 		"identity"
 	],

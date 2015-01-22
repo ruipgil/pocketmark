@@ -1,41 +1,25 @@
 var storage = {
 	get: function(key, callback) {
-		if (Array.isArray(key)) {
-			storage._bulkGet(key, callback)
+		if(Array.isArray(key)) {
+			chrome.storage.sync.get(key, callback);
 		} else {
-			callback(localStorage.getItem(key));
-		}
-	},
-	_bulkGet: function(arr, callback) {
-		var res = {};
-		async.each(arr, function(k, done) {
-			storage.get(k, function(r) {
-				res[k] = r;
-				done();
+			chrome.storage.sync.get(key, function(values) {
+				callback(values[key]);
 			});
-		}, function(err) {
-			callback(res);
-		});
+		}
 	},
 	set: function(key, value, callback) {
 		callback = callback || function() {};
 		if (typeof key === "object") {
 			callback = value || callback;
-			storage._bulkSet(key, callback);
+			key.lastChange = Date.now();
+			chrome.storage.sync.set(key, callback);
 		} else {
-			localStorage.setItem(key, value);
-			localStorage.setItem("lastChange", Date.now());
-			callback();
+			chrome.storage.sync.set({
+				lastChange: Date.now(),
+				key: value
+			}, callback);
 		}
-	},
-	_bulkSet: function(obj, callback) {
-		var keys = Object.keys(obj);
-		async.each(keys, function(k, done) {
-			storage.set(k, obj[k], done);
-		}, function(err) {
-			console.log("done setting");
-			callback();
-		});
 	},
 	getAll: function(callback) {
 		storage.get(["access_token",
@@ -65,9 +49,6 @@ var storage = {
 		});
 	},
 	clear: function(callback) {
-		localStorage.clear();
-		if (callback) {
-			callback();
-		}
+		chrome.storage.sync.clear(callback || function() {});
 	}
 }
