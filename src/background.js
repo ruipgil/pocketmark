@@ -1,6 +1,7 @@
 var ALARM_NAME = "updateLoop",
 	pocket_options = null,
 	pmarks_options = null,
+	lock = false,
 	p = null;
 
 /**
@@ -154,6 +155,7 @@ function addBookmark(parentId, title, url, callback) {
 function update() {
 	retrievePocketmarks(function(err, pmarks) {
 		getBookmarkFolder(pmarks_options.target_folder, function(folder) {
+			lock = true;
 			clearFolder(folder.id, function() {
 				async.each(pmarks, function(pmark, done) {
 					addBookmark(folder.id, pmark.title, pmark.url, function() { done(); });
@@ -222,15 +224,24 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
 /**
  * Adds a listener to add a item to pocket, when it was bookmarked.
+ * Only items added to the pocketmark folder are added to pocket.
  * This feature must be activated in the settings page.
  */
-chrome.bookmarks.onCreated.addListener(function(id, bookmark) {
-	if(p && pmarks_options.pocket_on_save && bookmark.url) {
-		p.add({
-			url: bookmark.url,
-			tags: pocket_options.tag
-		}, function(err) {});
+/*chrome.bookmarks.onCreated.addListener(function(id, bookmark) {
+	if( p && pmarks_options.pocket_on_save && bookmark.url ) {
+		if( updating ){
+			addedBookmarks
+		} else {
+			chrome.bookmarks.search(pmarks_options.target_folder, function(folder) {
+				if(folder.id === bookmark.parentId) {
+					p.add({
+						url: bookmark.url,
+						tags: pocket_options.tag
+					}, function(err) {});
+				}
+			});
+		}
 	}
-});
+});*/
 
 start();
