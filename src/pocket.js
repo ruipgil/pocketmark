@@ -1,4 +1,4 @@
-var consumer_key = "";
+var consumer_key = "{{consumer-key}}";
 var Pocket;
 (function() {
 	var POSTrequest = function(url, data, callback) {
