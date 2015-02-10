@@ -100,9 +100,21 @@ var validate = function(params, callback) {
 }
 
 function onLoad() {
+	var logingIn = false,
+		saving = false;
 	// bind click and changes
 	document.querySelector("#loginBtn").addEventListener('click', function() {
+		if(logingIn) {
+			return;
+		}
+		logingIn = true;
+		var temp = this.innerText,
+			self = this;
+		this.innerText = "Wait a second...";
+
 		login(function(err) {
+			logingIn = false;
+			self.innerText = temp;
 			if(err) {
 				setErrorMessage("Login failed. Try again.");
 			} else {
@@ -120,6 +132,15 @@ function onLoad() {
 		});
 	});
 	document.querySelector("#save").addEventListener('click', function() {
+		if(saving) {
+			return;
+		}
+		saving = true;
+
+		var temp = this.innerText,
+			self = this;
+		this.innerText = "Saving ...";
+
 		validate({
 			"tag": document.querySelector("#tagToImport").value,
 			"state": document.querySelector("#state").value,
@@ -132,6 +153,8 @@ function onLoad() {
 		}, function() {
 			loadSettingsValues();
 			background.restart();
+			saving = false;
+			self.innerText = temp;
 		});
 	});
 

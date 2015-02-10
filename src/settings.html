@@ -37,6 +37,35 @@
 		footer {
 			margin-top: 20px;
 		}
+
+		.txtbox, select {
+			border-radius: 2px;
+			text-decoration: none;
+			border: solid #CCCCCC 1px;
+			padding: 5px;
+		}
+
+		.button {
+			background: #CDCDCD;
+			font-weight: bold;
+			background-image: linear-gradient(to bottom, #CDCDCD, #777777);
+			border-radius: 4px;
+			text-shadow: 0px 1px 1px #333333;
+			color: #ffffff;
+			padding: 5px 10px 5px 10px;
+			border: solid #555555 1px;
+			text-decoration: none;
+			cursor: pointer;
+			-webkit-user-select: none;
+		}
+		.button:hover {
+			background: #777777;
+			background-image: none;
+		}
+		.button:active {
+			background: #CDCDCD;
+			background-image: none;
+		}
 	</style>
 	<script src="../libs/async.js"></script>
 	<script src="settings.js"></script>
@@ -54,7 +83,7 @@
 		<div id="login">
 			<h2>Login</h2>
 			<div class="center">
-				<button id="loginBtn">Login with pocket</button>
+				<button id="loginBtn" class="button">Login with pocket</button>
 			</div>
 		</div>
 
@@ -66,7 +95,7 @@
 			<form>
 				<div class="block">
 					<label for="tagToImport">Tag to import</label>
-					<input type="text" id="tagToImport" required placeholder="Bookmark" autofocus />
+					<input type="text" class="txtbox" id="tagToImport" required placeholder="pocketmark" autofocus />
 				</div>
 				<div class="block">
 					<label for="state">State</label>
@@ -84,7 +113,7 @@
 				-->
 				<div class="block">
 					<label for="destinationFolder">Destination folder name</label>
-					<input type="text" id="destinationFolder"/>
+					<input type="text" id="destinationFolder" class="txtbox"/>
 				</div>
 				<!--
 				<div class="block">
@@ -101,11 +130,11 @@
 				-->
 				<div class="block">
 					<label for="pocketOnSave">Bookmark to pocket</label>
-					<input type="checkbox" id="pocketOnSave" />
+					<input type="checkbox" id="pocketOnSave" class="txtbox" />
 				</div>
 
 				<div class="center">
-					<input type="button" id="save" value="Save" />
+					<button id="save" class="button">Save</button>
 				</div>
 
 			</form>
