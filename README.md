@@ -18,13 +18,13 @@ To use pocketmark you'll need to connect to your pocket account.
 
 ## Settings
 In the settings page you can:
-    - Login/Logout
-    - Change the name of the tags to import
-    - Change the state of the tags to import (all, archived or unread)
-    - Change the destination folder name
-    - ~~Change the update interval~~
-    - ~~Change whether or not every time a bookmark is created in chrome a item is create in pocket, tagged with the tag that you're using~~
-    - Force an update to pocketmark, when you save
+  - Login/Logout
+  - Change the name of the tags to import
+  - Change the state of the tags to import (all, archived or unread)
+  - Change the destination folder name
+  - ~~Change the update interval~~
+  - ~~Change whether or not every time a bookmark is created in chrome a item is create in pocket, tagged with the tag that you're using~~
+  - Force an update to pocketmark, when you save
 
 ## Licence
 This project this under the [MIT](./LICENCE) license.
