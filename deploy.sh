@@ -4,8 +4,11 @@ version=`node --eval "console.log(require('./manifest.json').version)"`;
 evers=`git tag -l 'v'$version`
 if [ -z $evers ]
 then
-	sed -i 's/{{consumer-key}}/'$value'/g' src/pocket.js;
-	zip -r pocketmark.v$version.zip libs/ src/ deploy.sh LICENSE manifest.json README.md;
+	rm ./src/consumer.key.js;
+	echo "var consumer_key=\"" $value "\";" > ./src/consumer.key.js;
+	zip -r pocketmark.v$version.zip bower_components libs/ src/ deploy.sh LICENSE manifest.json README.md;
+	rm ./src/consumer.key.js;
+	echo "var consumer_key=\"{{your-consumer-key-here}}\";" > ./src/consumer.key.js;
 	git tag v$version;
 	echo 'Great success! If everything is good, push it';
 	.

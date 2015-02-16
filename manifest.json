@@ -1,11 +1,12 @@
 {
 	"name": "Pocketmark",
-	"version": "0.3.2",
+	"version": "0.3.3",
 	"description": "From pocket to chrome bookmarks",
 	"background": {
 		"scripts": [
-			"./libs/async.js",
-			"./src/pocket.js",
+			"./bower_components/async/lib/async.js",
+			"./src/consumer.key.js",
+			"./bower_components/pocketapi/pocket.js",
 			"./src/storage.js",
 			"./src/background.js"
 		],
