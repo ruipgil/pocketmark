@@ -1,4 +1,4 @@
-var consumer_key = "{{consumer-key}}";
+var consumer_key = "36623-21c65ca99095d25e1508a080";
 var Pocket;
 (function() {
 	var POSTrequest = function(url, data, callback) {
@@ -8,7 +8,7 @@ var Pocket;
 
 		xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
 		xhr.setRequestHeader("X-Accept", "application/json");
-		console.log(data);
+
 		xhr.send(JSON.stringify(data));
 
 		xhr.onreadystatechange = function() {
