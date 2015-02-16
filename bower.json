@@ -1,0 +1,8 @@
+{
+  "name": "pocketmark",
+  "private": true,
+  "dependencies": {
+    "async": "~0.9.2",
+    "pocketapi": "*"
+  }
+}
