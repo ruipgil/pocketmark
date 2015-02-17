@@ -6,7 +6,7 @@ if [ -z $evers ]
 then
 	rm ./src/consumer.key.js;
 	echo "var consumer_key=\""$value"\";" > ./src/consumer.key.js;
-	zip -r pocketmark.v$version.zip bower_components src/ deploy.sh LICENSE manifest.json README.md .gitignore;
+	zip -r pocketmark.v$version.zip bower_components src/ deploy.sh LICENSE manifest.json README.md .gitignore resources/;
 	rm ./src/consumer.key.js;
 	echo "var consumer_key=\"{{your-consumer-key-here}}\";" > ./src/consumer.key.js;
 	git tag v$version;
