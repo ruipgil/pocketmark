@@ -1,4 +1,4 @@
-# ![icon](./resources/icon-64.png) pocketmark
+# ![icon](./resources/icon-32.png) pocketmark
 Create bookmarks from [pocket](https://getpocket.com) and keep them synchronized.
 
 ## How it works
