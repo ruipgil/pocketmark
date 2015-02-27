@@ -27,7 +27,10 @@ function buildObjects(data) {
  * @param  {!Object.<!string, !Object>} data Object received from
  *   pocket, ie, <code>list</code>
  * @return {!Array.<!Object>} Array of objects, ordered. The object
- *   has the keys <ul><li>order</li><li>url</li><li>title</li></ul>
+ *   has the keys <ul>
+ *   <li>order</li>
+ *   <li>url</li>
+ *   <li>title</li></ul>
  */
 function transformData(data) {
 	var e = data,
@@ -35,15 +38,11 @@ function transformData(data) {
 	for(var x in e) {
 		var elm = e[x];
 		res.push({
-			order: elm["sort_id"],
-			url: elm["resolved_url"],
-			title: elm["resolved_title"],
+			url: elm["resolved_url"] || elm["given_url"],
+			title: elm["resolved_title"] || elm["given_title"] || "",
 		});
 	}
-
-	return res.sort(function(a, b) {
-		return a.sort_id - b.sort_id;
-	});
+	return res;
 }
 
 /**
@@ -108,6 +107,32 @@ function removeBookmark(bookmarkId, callback) {
 }
 
 /**
+ * Removes one or more bookmarks by providing a list of urls and the
+ *   id of the folder to delete them from.
+ *
+ * @param  {!(string|Array.<!string>)} url Url or array of bookmarks.
+ * @param  {!string} folderId Folder ID to remove bookmarks form.
+ * @param  {!function} callback Callback function.
+ */
+function removeBookmarkByURL(url, folderId, callback) {
+	if(!Array.isArray(url)) {
+		url = [url];
+	}
+	chrome.bookmarks.getChildren(folderId, function(bookmarks) {
+		bookmarks = bookmarks.filter(function(bookmark) {
+			return url.indexOf(bookmark.url) != -1;
+		});
+		async.each(bookmarks, function(bookmark, done) {
+			chrome.bookmarks.remove(bookmark.id, function() {
+				done();
+			});
+		}, function(err) {
+			callback();
+		});
+	});
+}
+
+/**
  * Removes all bookmarks from a folder.
  *
  * @param  {!string} folderId Folder id, as provided by chrome.
@@ -125,42 +150,101 @@ function clearFolder(folderId, callback) {
 }
 
 /**
- * Adds a bookmark to a folder.
+ * Adds one or more bookmarks to a folder.
  *
  * @param {!string} parentId Folder id to insert the bookmark, as
  *   provided by chrome.
- * @param {!string} title Title of the bookmark. May be empty
- * @param {!string} url Url of the bookmark. Should not be empty, if
- *   so a folder is created instead of a bookmark.
- * @param {?function(Bookmark)} callback Callback function, that
- *   receives a bookmark as the first argument.
+ * @param {!(Object|Array.<Object>)} bookmarks A bookmark object or an
+ *   array of them.
+ * @param {?function()} callback Callback function.
  */
-function addBookmark(parentId, title, url, callback) {
-	chrome.bookmarks.create({
-		parentId: parentId,
-		title: title || "",
-		url: url
-	}, callback ? function(bookmark) {
-			callback(bookmark);
-		} : function() {});
+function addBookmark(parentId, bookmarks, callback) {
+	if(!Array.isArray(bookmarks)) {
+		bookmarks = [bookmarks];
+	}
+	async.each(bookmarks, function(bookmark, done) {
+		chrome.bookmarks.create({
+			parentId: parentId,
+			title: bookmark.title || "",
+			url: bookmark.url
+		}, function(bookmark) {
+			done();
+		});
+	}, function(err) {
+		callback();
+	});
+}
+
+/**
+ * Performs a diff between two array of objects.
+ *
+ * @param  {!Array.<!Object>} from Original object.
+ * @param  {!Array.<!Object>} to Original object.
+ *
+ * @return {!Object} Objects with the <ul>
+ *   <li><b>additions</b> to the original object, and
+ *   <li><b>removals</b> to the original object.
+ */
+function diff(from, to) {
+	var removals = [];
+	var founds = [];
+
+	var jfrom = from.map(function(elm) {
+		return JSON.stringify(elm);
+	});
+	var jto = to.map(function(elm) {
+		return JSON.stringify(elm);
+	});
+
+	jfrom.forEach(function(past, i) {
+		var found = false;
+		for(var j=0; j<to.length; j++) {
+			var present = jto[j];
+			if(past === present) {
+				found = true;
+				founds.push(j);
+				break;
+			}
+		}
+		if(!found) {
+			removals.push(i);
+		}
+	});
+
+	return {
+		additions: to.filter(function(elm, i) {
+			return founds.indexOf(i) == -1;
+		}),
+		removals: removals.map(function(r) {
+			return from[r];
+		})
+	};
 }
 
 /**
  * Updates the folder with bookmarks representing pocket items.
- * This is a simple get, clear, update cycle.
- * First the pocket items are retrieved, then the folder is cleared
- *   and new bookmarks are inserted.
- * This method can and should be optimized.
+ * It receives the data from pocket, and based on the folder set to
+ *   update, adds/removes bookmarks.
  */
 function update() {
 	retrievePocketmarks(function(err, pmarks) {
 		getBookmarkFolder(pmarks_options.target_folder, function(folder) {
-			lock = true;
-			clearFolder(folder.id, function() {
-				async.each(pmarks, function(pmark, done) {
-					addBookmark(folder.id, pmark.title, pmark.url, function() { done(); });
-				}, function(err) {
+			chrome.bookmarks.getChildren(folder.id, function(children) {
+				var t = children.map(function(child) {
+					return {
+						url: child.url,
+						title: child.title
+					}
 				});
+				var d = diff(t, pmarks);
+				if(d.additions.length) {
+					addBookmark(folder.id, d.additions, function() {});
+				}
+				if(d.removals.length) {
+					removeBookmarkByURL(d.removals.map(function(b) {
+						return b.url;
+					}), folder.id, function() {});
+				}
 			});
 		}, pmarks_options.parent_folder);
 	});
