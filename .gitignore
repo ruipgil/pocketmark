@@ -12,3 +12,5 @@ Thumbs.db
 *.zip
 *.ignore
 bower_components
+build
+node_modules
