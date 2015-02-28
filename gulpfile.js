@@ -1,7 +1,7 @@
 var gulp = require("gulp"),
 	clean = require("gulp-clean"),
 	es = require("event-stream"),
-	rseq = require("gulp-run-sequence"),
+	rseq = require("run-sequence"),
 	react = require("gulp-react"),
 	zip = require("gulp-zip");
 
@@ -14,7 +14,7 @@ var folder = {
 };
 
 gulp.task("clean", function() {
-	gulp.src("./build", { read:false })
+	return gulp.src("./build", { read:false })
 		.pipe(clean());
 });
 
@@ -48,7 +48,10 @@ gulp.task("default", function(callback) {
 });
 
 gulp.task("watch", function() {
-	gulp.watch(["./js/**/*", "./img/**/*", "./css/**/*", "./vendor/**/*", "./html/**/*"], ["default"]);
+	var watcher = gulp.watch(["./js/**/*", "./img/**/*", "./css/**/*", "./vendor/**/*", "./html/**/*"], ["default"]);
+	watcher.on('change', function(event) {
+		console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
+	});
 });
 
 gulp.task("chrome-dist", function() {

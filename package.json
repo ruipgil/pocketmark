@@ -5,7 +5,7 @@
     "gulp": "^3.8.11",
     "gulp-clean": "^0.3.1",
     "gulp-react": "^2.0.0",
-    "gulp-run-sequence": "^0.3.2",
-    "gulp-zip": "^2.0.3"
+    "gulp-zip": "^2.0.3",
+    "run-sequence": "^1.0.2"
   }
 }
