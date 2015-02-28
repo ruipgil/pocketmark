@@ -226,7 +226,9 @@ function diff(from, to) {
  *   update, adds/removes bookmarks.
  */
 function update() {
+	console.log("+++");
 	retrievePocketmarks(function(err, pmarks) {
+		console.log("...", pmarks);
 		getBookmarkFolder(pmarks_options.target_folder, function(folder) {
 			chrome.bookmarks.getChildren(folder.id, function(children) {
 				var t = children.map(function(child) {

@@ -1,3 +1,18 @@
+var background = {
+  start: function() {
+    console.log("start");
+    chrome.runtime.sendMessage({start:true});
+  },
+  stop: function() {
+    console.log("stop");
+    chrome.runtime.sendMessage({stop:true});
+  },
+  restart: function() {
+    console.log("restart");
+    chrome.runtime.sendMessage({restart:true});
+  }
+};
+
 function removeSpaces(str) {
   return str.toLowerCase().trim().replace(" ", "");
 }
@@ -90,49 +105,11 @@ var SettingsForm = React.createClass({
     for(var x in this.refs) {
       obj[x] = this.refs[x].getValue();
     }
-    console.log(obj);
-    debugger;
+    this.props.onSave(obj);
   },
   render: function() {
     var data = this.props.data;
-    /*
-    
-        
-        <InputBox
-          label="Destination folder"
-          help="Name of the folder to be created. If the folder doesn't exist it will be created. If it is changed it will not remove the bookmark from it. If you type a folder that already exists, the items in there might be deleted!"
-          placeholder="pocketmark"
-          ref="destinationFolder"
-          defaultValue={data.target_folder} />
-        <SelectBox
-          label="Save to pocket"
-          help="If yes, bookmarks added from now on will be added to pocket, with your current tag to import"
-          options={[{value: "0", text: "No"}, {value: "1", text: "Yes"}]}
-          ref="saveToPocket"
-          defaultValue="0" />
-        <SelectBox
-          label="Update interval"
-          help="Time interval to update your pocketmarks"
-          options={[
-            {value: "1", text: "Every second"},
-            {value: "5", text: "Every 5 seconds"},
-            {value: "10", text: "Every 10 seconds"},
-            {value: "30", text: "Every 30 seconds"},
-            {value: "60", text: "Every minute"},
-            {value: "300", text: "Every 5 minutes"},
-            {value: "600", text: "Every 10 minutes"},
-            {value: "1800", text: "Every 30 minutes"},
-            {value: "3600", text: "Every hour"}
-            ]}
-          ref="interval"
-          defaultValue={data.interval} />
-        <SelectBox
-          label="Sync"
-          help="Stores credentials and settings through your google account. You won't need to login and reconfigure your settings when you use chrome in another computer"
-          options={[{value: "0", text: "No"}, {value: "1", text: "Yes"}]}
-          ref="sync"
-          defaultValue="0" />
-     */
+
     return (
       <form className="form-horizontal" >
         <InputBox
@@ -144,7 +121,7 @@ var SettingsForm = React.createClass({
         <SelectBox
           label="State"
           help="The state of items to be imported"
-          options={[{value: "0", text: "All"}, {value: "1", text: "Unread"}, {value: "2", text: "Archived"}]}
+          options={[{value: Pocket.STATE.ALL, text: "All"}, {value: Pocket.STATE.UNREAD, text: "Unread"}, {value: Pocket.STATE.ARCHIVE, text: "Archived"}]}
           ref="state"
           value={data.state} />
         <InputBox
@@ -192,48 +169,70 @@ var SettingsForm = React.createClass({
 });
 
 var Login = React.createClass({
+  handleLogin: function() {
+    login(function(err) {
+      // TODO error handling
+      this.props.callback();
+    }.bind(this));
+  },
   render: function() {
     return (
       <p className="text-center">
-        <button type="button" className="btn btn-danger btn-lg">Login with pocket</button>
+        <button type="button" className="btn btn-danger btn-lg" onClick={this.handleLogin}>Login with pocket</button>
       </p>
     );
   }
 });
 
-var Logged = React.createClass({
+var App = React.createClass({
   getInitialState: function() {
-    return {
-      "tag": "pocketmark",
-      "state":1,
-      "target_folder": "pocketmark",
-      "interval": 1,
-      "username":"ruipgil"
-    };
+    return {};
   },
   componentDidMount: function() {
-    /*this.setState({
-      "tag":"pocketmark",
-      "username":"ruipgil"
-    });*/
-    /*storage.getAll(function(data) {
+    storage.getAll(function(data) {
+      console.log("storage.data", data);
       this.setState(data);
-    }.bind(this));*/
+    }.bind(this));
   },
-  onSave: function(options) {},
+  onSave: function(options) {
+    console.log("set options", options);
+    this.setState(options);
+    storage.set(options);
+    background.restart();
+  },
+  handleLogout: function() {
+    storage.clear(function() {
+      this.setState({username: undefined, access_token: undefined});
+      background.stop();
+    }.bind(this));
+  },
+  handleLogin: function() {
+    storage.getAll(function(data) {
+      console.log("login: storage.data", data);
+      this.setState(data);
+      background.start();
+    }.bind(this));
+  },
   render: function() {
-    return (
-      <div>
-        <p className="text-center">
-          Hello {this.state.username}, <button type="button" className="btn btn-danger btn-sm">Logout</button>
-        </p>
-        <h2>Settings</h2>
-        <SettingsForm data={this.state} onSave={this.onSave} />
-      </div>
-    );
+    if(this.state.username) {
+      return (
+        <div>
+          <p className="text-center">
+            Hello {this.state.username}, <button type="button" className="btn btn-danger btn-sm" onClick={this.handleLogout}>Logout</button>
+          </p>
+          <h2>Settings</h2>
+          <SettingsForm data={this.state} onSave={this.onSave} />
+        </div>
+      );
+    }else {
+      return (
+        <Login callback={this.handleLogin} />
+      )
+    }
   }
 });
+
 React.render(
-  <Logged />,
+  <App />,
   document.getElementById('target')
   );

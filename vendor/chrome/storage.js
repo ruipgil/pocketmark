@@ -30,8 +30,7 @@ var storage = {
 			"target_folder",
 			"interval",
 			"pocket_on_save",
-			"lastChange",
-			"pmarks"
+			"lastChange"
 		], callback);
 	},
 	init: function(access_token, username) {
@@ -46,8 +45,7 @@ var storage = {
 			target_folder: "pocketmark",
 			interval: 1,
 			pocket_on_save: 0,
-			lastChange: Date.now(),
-			pmarks: "{}"
+			lastChange: Date.now()
 		});
 	},
 	clear: function(callback) {
