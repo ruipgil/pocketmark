@@ -4,11 +4,11 @@
 	"description": "From pocket to chrome bookmarks",
 	"background": {
 		"scripts": [
-			"./bower_components/async/lib/async.js",
-			"./src/consumer.key.js",
-			"./bower_components/pocketapi/pocket.js",
-			"./src/storage.js",
-			"./src/background.js"
+			"./libs/async.js",
+			"./js/consumer.key.js",
+			"./libs/pocket.js",
+			"./js/storage.js",
+			"./js/background.js"
 		],
 		"persistent": false
 	},
@@ -19,7 +19,7 @@
 		"64": "resources/icon-64.png",
 		"128": "resources/icon-128.png"
 	},
-	"options_page": "./src/settings.html",
+	"options_page": "./settings.html",
 	"permissions": [
 		"https://getpocket.com/v3/get",
 		"bookmarks",

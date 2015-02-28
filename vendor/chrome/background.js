@@ -1,7 +1,6 @@
 var ALARM_NAME = "updateLoop",
 	pocket_options = null,
 	pmarks_options = null,
-	lock = false,
 	p = null;
 
 /**
