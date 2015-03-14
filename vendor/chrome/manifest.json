@@ -22,6 +22,7 @@
 	"options_page": "./settings.html",
 	"permissions": [
 		"https://getpocket.com/v3/get",
+		"https://getpocket.com/v3/add",
 		"bookmarks",
 		"storage",
 		"alarms",

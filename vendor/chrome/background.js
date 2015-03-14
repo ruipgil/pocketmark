@@ -1,6 +1,7 @@
 var ALARM_NAME = "updateLoop",
 	pocket_options = null,
 	pmarks_options = null,
+	toBeAdded = [],
 	p = null;
 
 /**
@@ -15,7 +16,7 @@ function buildObjects(data) {
 	pmarks_options = {
 		parent_folder: data.parent_folder,
 		target_folder: data.target_folder,
-		pocket_on_save: Number(data.pocket_on_save),
+		pocket_on_save: true, //Number(data.pocket_on_save),
 		interval: Number(data.interval)
 	};
 }
@@ -226,9 +227,11 @@ function diff(from, to) {
  *   update, adds/removes bookmarks.
  */
 function update() {
-	console.log("+++");
 	retrievePocketmarks(function(err, pmarks) {
-		console.log("...", pmarks);
+		if(err) {
+			console.error(err);
+		}
+
 		getBookmarkFolder(pmarks_options.target_folder, function(folder) {
 			chrome.bookmarks.getChildren(folder.id, function(children) {
 				var t = children.map(function(child) {
@@ -242,7 +245,9 @@ function update() {
 					addBookmark(folder.id, d.additions, function() {});
 				}
 				if(d.removals.length) {
-					removeBookmarkByURL(d.removals.map(function(b) {
+					removeBookmarkByURL(d.removals.filter(function(b) {
+						return toBeAdded.indexOf(b.url) === -1;
+					}).map(function(b) {
 						return b.url;
 					}), folder.id, function() {});
 				}
@@ -312,21 +317,28 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
  * Only items added to the pocketmark folder are added to pocket.
  * This feature must be activated in the settings page.
  */
-/*chrome.bookmarks.onCreated.addListener(function(id, bookmark) {
+chrome.bookmarks.onCreated.addListener(function(id, bookmark) {
 	if( p && pmarks_options.pocket_on_save && bookmark.url ) {
-		if( updating ){
-			addedBookmarks
-		} else {
-			chrome.bookmarks.search(pmarks_options.target_folder, function(folder) {
-				if(folder.id === bookmark.parentId) {
-					p.add({
-						url: bookmark.url,
-						tags: pocket_options.tag
-					}, function(err) {});
-				}
-			});
-		}
+		toBeAdded.push(bookmark.url);
+		chrome.bookmarks.search(pmarks_options.target_folder, function(folder) {
+			folder = folder[0];
+			if(folder.id === bookmark.parentId) {
+				p.add({
+					url: bookmark.url,
+					tags: pocket_options.tag
+				}, function(err) {
+					if(err) {
+						return console.error(err);
+					}
+					var i = toBeAdded.indexOf(bookmark.url);
+					if(i>=0) {
+						toBeAdded.splice(i, 1);
+					}
+				});
+			}
+		});
 	}
-});*/
+
+});
 
 start();
