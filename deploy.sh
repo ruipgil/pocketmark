@@ -1,10 +1,10 @@
 #!/bin/sh
 value=`cat consumer.key`;
-version=`node --eval "console.log(require('./manifest.json').version)"`;
+version=`node --eval "console.log(require('./build/vendor/manifest.json').version)"`;
 evers=`git tag -l 'v'$version`
 if [ -z $evers ]
 then
-	rm ./src/consumer.key.js;
+	rm ./js/consumer.key.js;
 	echo "var consumer_key=\""$value"\";" > ./src/consumer.key.js;
 	zip -r pocketmark.v$version.zip bower_components src/ deploy.sh LICENSE manifest.json README.md .gitignore resources/;
 	rm ./src/consumer.key.js;

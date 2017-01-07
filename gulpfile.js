@@ -32,6 +32,8 @@ gulp.task("chrome", function() {
 		gulp.src("./html/**/*").pipe(gulp.dest("./build/chrome/")),
 		gulp.src("./css/**/*").pipe(gulp.dest("./build/chrome/css/")),
 
+		gulp.src("./bower_components/pocketapi/pocket.js").pipe(gulp.dest("./build/chrome/libs/pocketapi.js")),
+		gulp.src("./bower_components/async/lib/async.js").pipe(gulp.dest("./build/chrome/libs/")),
 		gulp.src("./img/**/*").pipe(gulp.dest("./build/chrome/img/")),
 		gulp.src("./bower_components/bootstrap/dist/css/bootstrap.min.css").pipe(gulp.dest("./build/chrome/css/")),
 
